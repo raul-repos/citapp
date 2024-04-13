@@ -1,4 +1,4 @@
-import crypto from "@/utils/cripto";
+import crypto from "@/server/lib/crypto";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 
 export const userRouter = createTRPCRouter({
