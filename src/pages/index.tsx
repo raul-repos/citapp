@@ -4,10 +4,12 @@ import Link from "next/link";
 
 import { api } from "@/utils/api";
 import styles from "./index.module.css";
+import { getServerAuthSession } from "@/server/auth";
+import { getServerSideProps } from "next/dist/build/templates/pages";
 
 export default function Home() {
   // const hello = api.post.hello.useQuery({ text: "from tRPC" });
-
+  const newUser =  api.user.newUser.useMutation()
   return (
     <>
       <Head>
@@ -44,6 +46,7 @@ export default function Home() {
               </div>
             </Link>
           </div>
+          <button onClick={() => newUser.mutate()}>Create new User</button>
           <div className={styles.showcaseContainer}>
             <p className={styles.showcaseText}>
               Hello World
@@ -59,7 +62,7 @@ export default function Home() {
 
 function AuthShowcase() {
   const { data: sessionData } = useSession();
-
+  console.log({sessionData})
   const { data: secretMessage } = api.post.getSecretMessage.useQuery(
     undefined, // no input
     { enabled: sessionData?.user !== undefined }
