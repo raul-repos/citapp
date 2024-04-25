@@ -1,24 +1,16 @@
-import { signIn, useSession, type SignInResponse} from "next-auth/react";
+import { signIn} from "next-auth/react";
 
 import {IconAlertCircle} from "@tabler/icons-react"
 import { Alert, Button, Center, Group,  Paper, PasswordInput, TextInput, Title } from "@mantine/core";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function Home() {
-    const sesssion = useSession()
-    console.log(sesssion)
     const {push} = useRouter()
 
     const [username, setUsername] = useState("")
     const [password, setPassword] = useState("")
-    const [serverResponse, setServerResponse] = useState<SignInResponse | null>()
     const [errorMsg, setErrorMsg] = useState("")
-    useEffect(() => {
-        if (serverResponse?.status == 200) void push('/logged')
-      // Next line disabled because I dont want push function as a dependency
-      // eslint-disable-next-line
-    }, [ serverResponse])
 
     async function onLogin(){
         setErrorMsg("")
@@ -31,9 +23,7 @@ export default function Home() {
           setUsername("")
           setPassword("")
         }
-        if (response!.status == 200) void push('/logged')
-
-        setServerResponse(response)
+        if (response!.status == 200) void push('/dashboard')
     }
   return (
       <Center w={'100vw'} h={'100vh'}>
