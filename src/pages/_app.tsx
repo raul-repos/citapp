@@ -16,6 +16,7 @@ const inter = Inter({
 
 export const pacifico = Pacifico({ weight: '400', subsets: ['latin'] })
 
+//eslint-disable-next-line
 export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
   getLayout?: (page: ReactElement) => ReactNode
 }
@@ -32,6 +33,7 @@ function MyApp({
   const getLayout = Component.getLayout ?? ((page) => page)
 
   return (
+    //eslint-disable-next-line
     <SessionProvider session={session}>
       <main className={inter.className}>
         <MantineProvider
