@@ -1,9 +1,10 @@
-import { useDisclosure } from '@mantine/hooks'
-import { Paper, Title, Group, Drawer, Burger } from '@mantine/core';
+import { Paper, LoadingOverlay } from '@mantine/core';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
-import { useEffect } from 'react';
-import { pacifico } from './_app';
+import { ReactElement, useEffect } from 'react';
+import { User } from '@/server/lib/types';
+import { api } from '@/utils/api';
+import { Layout } from '@/components/layout';
 
 export default function Dashboard() {
   const session = useSession()
@@ -14,40 +15,35 @@ export default function Dashboard() {
     }
   }, [session])
 
+  // Session will always have content, otherwhise it will be redirected to /login 
+  const user = session?.data?.user as User
   return (
-    <Paper p={'md'} m={0} withBorder radius={0} >
-      <Group w={'100vw'}>
-        <SideBar />
-        <Logo />
-      </ Group>
-    </Paper>
+    <UserAppointments user={user} />
   );
 }
 
 
-function Logo() {
+Dashboard.getLayout = function getLayout(page: ReactElement) {
   return (
-    <Title className={pacifico.className} c='red'>
-      Citapp
-    </Title>
+    <Layout>
+      {page}
+    </Layout>
   )
 }
 
 
-function SideBar() {
-  const [opened, { toggle }] = useDisclosure(false)
+function UserAppointments({ user }: { user: User }) {
+  const { data, isLoading, isError, error } = api.appointment.getByUser.useQuery({ userId: user.id })
+
+  if (isLoading) return <LoadingOverlay visible={true} />
+
+  if (isError) return <>Se ha producido un error!!: {error.message}</>
+
+  if (!data) return <>No data </>
+
   return (
-    <><Drawer title={<XButton opened={opened} toggle={toggle} />} opened={opened} onClose={toggle} withCloseButton={false}>
-      Contenido del drawer
-    </Drawer>
-      <XButton opened={opened} toggle={toggle} />
+    <>
+      {data.length > 0 ? data.map(appointment => <Paper key={appointment.id}>{appointment.userId}</Paper>) : <Paper>Aún no hay citas</Paper>}
     </>
-  )
-}
-
-function XButton({ opened, toggle }: { opened: boolean, toggle: () => void }) {
-
-  return (
-    <Burger opened={opened} onClick={toggle} />
   )
 }
