@@ -6,7 +6,7 @@ export const appointmentRouter = createTRPCRouter({
   create: protectedProcedure
     .input(Appointment.omit({ id: true }))
     .mutation(async ({ ctx, input }) => {
-      ctx.db.appointment.create({
+      await ctx.db.appointment.create({
         data: { ...input }
       })
     }),
@@ -52,7 +52,7 @@ export const appointmentRouter = createTRPCRouter({
     .input(Appointment)
     .mutation(async ({ ctx, input }) => {
 
-      ctx.db.appointment.update({
+      await ctx.db.appointment.update({
         where: { id: input.id },
         data: { ...input }
       })
@@ -61,6 +61,6 @@ export const appointmentRouter = createTRPCRouter({
   delete: protectedProcedure
     .input(Appointment.pick({ id: true }))
     .mutation(async ({ ctx, input }) => {
-      ctx.db.appointment.delete({ where: { id: input.id } })
+      await ctx.db.appointment.delete({ where: { id: input.id } })
     })
 })

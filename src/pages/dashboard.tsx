@@ -10,7 +10,7 @@ export default function Dashboard() {
   const { push } = useRouter()
   useEffect(() => { // If user is not authenticated, go to login
     if (session.status == 'unauthenticated') {
-      push('/') // login is currently in root 
+      void push('/') // login is currently in root 
     }
   }, [session])
 

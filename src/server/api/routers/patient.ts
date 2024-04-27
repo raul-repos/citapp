@@ -6,7 +6,7 @@ export const patientRouter = createTRPCRouter({
   create: protectedProcedure
     .input(Patient.omit({ id: true, appointment: true }))
     .mutation(async ({ ctx, input }) => {
-      ctx.db.patient.create({
+      await ctx.db.patient.create({
         data: { ...input }
       })
     }),
