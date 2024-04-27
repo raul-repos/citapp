@@ -1,42 +1,53 @@
-import { AppShell, Navbar, Header, Paper, Title } from '@mantine/core';
-import { SessionContextValue, useSession } from 'next-auth/react';
+import { useDisclosure } from '@mantine/hooks'
+import { Paper, Title, Group, Drawer, Burger } from '@mantine/core';
+import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
-import { PropsWithChildren, useEffect } from 'react';
+import { useEffect } from 'react';
 import { pacifico } from './_app';
 
 export default function Dashboard() {
-  return (
-    <Layout>
-    </Layout>
-  );
-}
-
-
-function _Header({ session }: { session: SessionContextValue }) {
-  return (
-    <Paper p={'md'} m={0} withBorder radius={0} h={'5vh'} >
-      Hello {session.data?.user.username}
-      <Title className={pacifico.className} c='red'>
-        Citapp
-      </Title>
-    </Paper>
-  )
-}
-
-
-function Layout({ children }: PropsWithChildren) {
-  const { push } = useRouter()
   const session = useSession()
+  const { push } = useRouter()
   useEffect(() => { // If user is not authenticated, go to login
     if (session.status == 'unauthenticated') {
       push('/') // login is currently in root 
     }
-  }
-    , [session])
+  }, [session])
+
   return (
-    <>
-      <_Header session={session} />
-      {children}
+    <Paper p={'md'} m={0} withBorder radius={0} >
+      <Group w={'100vw'}>
+        <SideBar />
+        <Logo />
+      </ Group>
+    </Paper>
+  );
+}
+
+
+function Logo() {
+  return (
+    <Title className={pacifico.className} c='red'>
+      Citapp
+    </Title>
+  )
+}
+
+
+function SideBar() {
+  const [opened, { toggle }] = useDisclosure(false)
+  return (
+    <><Drawer title={<XButton opened={opened} toggle={toggle} />} opened={opened} onClose={toggle} withCloseButton={false}>
+      Contenido del drawer
+    </Drawer>
+      <XButton opened={opened} toggle={toggle} />
     </>
+  )
+}
+
+function XButton({ opened, toggle }: { opened: boolean, toggle: () => void }) {
+
+  return (
+    <Burger opened={opened} onClick={toggle} />
   )
 }
