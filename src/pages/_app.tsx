@@ -15,7 +15,6 @@ const inter = Inter({
 });
 
 export const pacifico = Pacifico({ weight: '400', subsets: ['latin'] })
-
 //eslint-disable-next-line
 export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
   getLayout?: (page: ReactElement) => ReactNode
@@ -29,7 +28,8 @@ function MyApp({
   Component,
   pageProps: { session, ...pageProps },
 }: AppPropsWithLayout) {
-  // Use the layout defined at the page level, if available
+  // Defining layout per page.
+  // See [documentation](https://nextjs.org/docs/pages/building-your-application/routing/pages-and-layout)
   const getLayout = Component.getLayout ?? ((page) => page)
 
   return (
