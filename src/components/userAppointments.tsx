@@ -88,8 +88,8 @@ function CreateAppointment({ user }: { user: User }) {
 	useEffect(() => {
 		// Automatically close the modal on success
 		if (mutation.isSuccess) {
-			refetch()
-			close()
+			void refetch()
+			void close()
 		}
 	}, [mutation.isSuccess])
 
@@ -115,7 +115,7 @@ function CreateAppointment({ user }: { user: User }) {
 		const payload = {
 			userId: user.id,
 			patientId: patientId!,
-			date: date as Date
+			date: date!
 		}
 
 		mutation.mutate(payload)
@@ -133,7 +133,8 @@ function CreateAppointment({ user }: { user: User }) {
 						onChange={setPatientId}
 					>
 					</ Select>
-					<DateTimePicker locale={"es"} w={"100%"} label="Escoge fecha y hora para la cita" mx={'auto'} value={date} onChange={e => setDate(e)} />
+					{/* Undefined values to be compliant with type definition and avoids linter errors */}
+					<DateTimePicker locale={"es"} w={"100%"} label="Escoge fecha y hora para la cita" mx={'auto'} value={date} onChange={e => setDate(e)} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} placeholder={undefined} />
 					<Group my={"xl"} w={"100%"} position={"center"}>
 						<Button onClick={onNewAppointment} loading={mutation.isPending}>Crear cita</Button>
 					</Group>

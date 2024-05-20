@@ -35,8 +35,8 @@ function PatientActions() {
   useEffect(() => {
     // Automatically close the modal on success
     if (mutation.isSuccess) {
-      refetch()
-      close()
+      void refetch()
+      void close()
     }
   }, [mutation.isSuccess])
 
