@@ -7,7 +7,7 @@ export function middleware(request: NextRequest) {
 	// exclude index page, TRPC calls and next.js stuff
 	const isPrivatePath = !request.nextUrl.pathname.includes('/api/') && request.nextUrl.pathname !== '/' && !request.nextUrl.pathname.includes('/_next/')
 	if (isPrivatePath) {
-		const hasAuthCookie = request.cookies.has('next-auth.session-token') //Authentication token
+		const hasAuthCookie = request.cookies.has('next-auth.session-token') || request.cookies.has('__Secure-next-auth.session-token')  //Authentication token
 		if (!hasAuthCookie) return NextResponse.redirect(new URL('/', request.url))
 	}
 }
