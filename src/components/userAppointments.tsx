@@ -35,12 +35,12 @@ function AppointmentsList({ user }: { user: User }) {
 
 	return (
 		<>
-			{data.map(appointment => <AppointmentCard user={user} data={appointment} key={appointment.id} />)}
+			{data.map(appointment => <AppointmentCard username={user.name} data={appointment} key={appointment.id} />)}
 		</>
 	)
 }
 
-function AppointmentCard({ data, user }: { data: Appointment, user: User }) {
+export function AppointmentCard({ data, username }: { data: Appointment, username: User["name"] }) {
 
 	const { data: patient } = api.patient.getUnique.useQuery({ id: data.patientId })
 	return (
@@ -56,7 +56,7 @@ function AppointmentCard({ data, user }: { data: Appointment, user: User }) {
 					<Title order={6}>
 						Atiende:
 					</Title>
-					{user.name ?? "Medico"}
+					{username ?? "Medico"}
 				</Stack>
 				<Stack>
 					<Title order={6}>
