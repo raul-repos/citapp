@@ -13,7 +13,10 @@ export const patientRouter = createTRPCRouter({
 
   getAll: protectedProcedure
     .query(async ({ ctx }) => {
-      const patients = await ctx.db.patient.findMany()
+      const patients = await ctx.db.patient.findMany({
+        relationLoadStrategy: 'join' as never,
+        include: { appointment: true }
+      })
 
       return patients
     }),
