@@ -32,7 +32,7 @@ function PatientCard({ patient }: { patient: Patient }) {
       <Accordion.Control >{patient.name} {patient.lastName} </Accordion.Control>
       <Accordion.Panel>
         <Title order={3} align="center">Citas</Title>
-        {patient.appointment.length == 0 ? <Center w={'100%'}>Sin citas programadas</Center> : patient.appointment.map(appointment => <SimpleGrid cols={3}><AppointmentCard data={appointment} username={"John Doe"} /></SimpleGrid>)}
+        {patient.appointment.length == 0 ? <Center w={'100%'}>Sin citas programadas</Center> : patient.appointment.map(appointment => <SimpleGrid key={appointment.id} cols={3}><AppointmentCard data={appointment} username={"John Doe"} /></SimpleGrid>)}
       </Accordion.Panel>
     </>
   )
