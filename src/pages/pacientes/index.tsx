@@ -74,10 +74,10 @@ function PatientActions({ user }: { user: User }) {
         <CreateAppointment user={user} refetch={refetch} />
       </Group>
       <Modal opened={opened} onClose={close} withCloseButton={false}>
-        <TextInput required value={name} onChange={e => setName(e.target.value)} label={'Nombre'} error={"El nombre no puede estar vacío"} />
+        <TextInput required value={name} onChange={e => setName(e.target.value)} label={'Nombre'} error={!name ? "El nombre no puede estar vacío": false} />
         <TextInput required value={lastName} onChange={e => setLastName(e.target.value)} label={'Apellidos'} />
         <NumberInput value={phone} onChange={(e: number) => setPhone(e)} label={'Telefono'} hideControls />
-        <Button onClick={onNewPatient} mt={'xl'} disabled loading={mutation.isPending}>Crear nuevo paciente </Button>
+        <Button onClick={onNewPatient} mt={'xl'} disabled={!name || !lastName} loading={mutation.isPending}>Crear nuevo paciente </Button>
         {mutation.isError ?
           <Alert icon={<IconAlertCircle size={'1rem'} />} title={'¡Error!'} color={'red'}>
             Ha ocurrido un error al añadir el paciente: {mutation.error.message}

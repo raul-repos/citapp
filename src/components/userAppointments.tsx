@@ -7,18 +7,11 @@ import { CreateAppointment } from "./createAppointment"
 
 export function UserAppointments() {
 	const { data: user, isLoading } = api.user.getUser.useQuery()
-	const { refetch } = api.appointment.getByUser.useQuery({ userId: user!.id }, {enabled: !!user})
 
 	if (isLoading) return <LoadingOverlay visible={true} />
 	if (!user) return <></>
 	return (
-	<>
-
-		<Group my={"md"} w={"80vw"} mx={'auto'} position="right">
-			<CreateAppointment user={user} refetch={refetch} />
-			</Group>
 		<AppointmentsList user={user} />
-		</>
 	)
 }
 
@@ -50,7 +43,9 @@ function AppointmentsList({ user }: { user: User }) {
 
 	return (
 		<>
-
+			<Group my={"md"} w={"80vw"} mx={'auto'} position="right">
+				<CreateAppointment user={user} refetch={refetch} />
+			</Group>
 			{uniqueMonthYears.map(date => {
 				const [month, year] = date.split('/').map(Number);
 				const appointments = data.filter(app => {

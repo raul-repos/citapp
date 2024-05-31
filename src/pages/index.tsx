@@ -4,6 +4,7 @@ import {IconAlertCircle} from "@tabler/icons-react"
 import { Alert, Button, Center, Group,  Paper, PasswordInput, TextInput, Title } from "@mantine/core";
 import { useRouter } from "next/router";
 import { useState } from "react";
+import Logo from "@/components/logo";
 
 export default function Home() {
     const {push} = useRouter()
@@ -28,9 +29,12 @@ export default function Home() {
   return (
       <Center w={'100vw'} h={'100vh'}>
         <Paper withBorder p={'xl'} shadow="md">
+          <Group>
           <Title>
-            Iniciar sesión en Citapp
+            Iniciar sesión en
           </Title>
+          <Logo />
+          </Group>
           <TextInput value={username} onChange={e => setUsername(e.target.value)} placeholder="usuarioPrueba" label='Usuario'/>
           <PasswordInput value={password} onChange={e => setPassword(e.target.value)} placeholder="pass123" label='Contraseña'/>
           <Group w={'100%'} position="center" mt={'md'}>
