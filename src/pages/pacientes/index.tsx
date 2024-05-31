@@ -1,5 +1,7 @@
+import { AppointmentCard } from "@/components/appointmentCard";
+import { CreateAppointment } from "@/components/createAppointment";
 import { Layout } from "@/components/layout";
-import { AppointmentCard } from "@/components/userAppointments";
+import { User } from "@/server/lib/types";
 import { Patient } from "@/server/lib/types/patient";
 import { api } from "@/utils/api";
 import { Accordion, Alert, Button, Center, Group, LoadingOverlay, Modal, NumberInput, Paper, SimpleGrid, Stack, Text, TextInput, Title } from "@mantine/core";
@@ -8,8 +10,9 @@ import { IconAlertCircle, IconUserPlus } from "@tabler/icons-react";
 import { ReactElement, useEffect, useState } from "react";
 
 export default function PatientList() {
-  const { data, isLoading, isError } = api.patient.getAll.useQuery()
-  if (isLoading) return <LoadingOverlay visible={true} />
+  const { data, isLoading, isError, refetch } = api.patient.getAll.useQuery()
+  const { data: user, isLoading: userLoading } = api.user.getUser.useQuery()
+  if (isLoading || userLoading) return <LoadingOverlay visible={true} />
 
   if (isError) return <>Se ha producido un error </>
 
@@ -18,27 +21,28 @@ export default function PatientList() {
       <Title order={1} align="center" my={'xl'}>
         Pacientes
       </Title>
-      <PatientActions />
+      <PatientActions user={user!} />
       <Accordion w={'80%'} mx={"auto"} mt="xl" variant={"separated"}>
-        {data!.map(patient => <Accordion.Item value={patient.id} key={patient.id}><PatientCard patient={patient as Patient} /></Accordion.Item>)}
+        {data!.map(patient => <Accordion.Item value={patient.id} key={patient.id}><PatientCard patient={patient as Patient} refetch={refetch} /></Accordion.Item>)}
       </Accordion>
     </>
   )
 }
 
-function PatientCard({ patient }: { patient: Patient }) {
+function PatientCard({ patient, refetch }: { refetch: () => void, patient: Patient }) {
   return (
     <>
       <Accordion.Control >{patient.name} {patient.lastName} </Accordion.Control>
       <Accordion.Panel>
-        <Title order={3} align="center">Citas</Title>
-        {patient.appointment.length == 0 ? <Center w={'100%'}>Sin citas programadas</Center> : patient.appointment.map(appointment => <SimpleGrid key={appointment.id} cols={3}><AppointmentCard data={appointment} username={"John Doe"} /></SimpleGrid>)}
+        <Title order={3} align="center">Citas</Title><SimpleGrid cols={3}>
+          {patient.appointment.map(appointment => <AppointmentCard key={appointment.id} refetch={refetch} data={appointment} />)}</SimpleGrid>
+        {patient.appointment.length == 0 ? <Center w={'100%'}>Sin citas programadas</Center> : null}
       </Accordion.Panel>
     </>
   )
 }
 
-function PatientActions() {
+function PatientActions({ user }: { user: User }) {
   const mutation = api.patient.create.useMutation()
   const [opened, { open, close }] = useDisclosure()
   const [name, setName] = useState<string>()
@@ -62,12 +66,18 @@ function PatientActions() {
   }
 
   return (
-    <>	<Group my={"md"} w={"100vw"} position="right"><Button variant="outline" w={"small"} mr={'xl'} leftIcon={<IconUserPlus />} onClick={open}>Añadir paciente</Button></Group>
-      <Modal opened={opened} onClose={close}>
-        <TextInput required value={name} onChange={e => setName(e.target.value)} label={'Nombre'} />
+    <>
+      <Group my={"md"} w={"80vw"} position="right" mx={'auto'}>
+        <Button variant="outline" w={"small"} mr={'xl'} leftIcon={<IconUserPlus />} onClick={open}>
+          Añadir paciente
+        </Button>
+        <CreateAppointment user={user} refetch={refetch} />
+      </Group>
+      <Modal opened={opened} onClose={close} withCloseButton={false}>
+        <TextInput required value={name} onChange={e => setName(e.target.value)} label={'Nombre'} error={"El nombre no puede estar vacío"} />
         <TextInput required value={lastName} onChange={e => setLastName(e.target.value)} label={'Apellidos'} />
-        <NumberInput value={phone} onChange={(e: number) => setPhone(e)} label={'Telefono'} />
-        <Button onClick={onNewPatient} loading={mutation.isPending}>Crear nuevo paciente </Button>
+        <NumberInput value={phone} onChange={(e: number) => setPhone(e)} label={'Telefono'} hideControls />
+        <Button onClick={onNewPatient} mt={'xl'} disabled loading={mutation.isPending}>Crear nuevo paciente </Button>
         {mutation.isError ?
           <Alert icon={<IconAlertCircle size={'1rem'} />} title={'¡Error!'} color={'red'}>
             Ha ocurrido un error al añadir el paciente: {mutation.error.message}

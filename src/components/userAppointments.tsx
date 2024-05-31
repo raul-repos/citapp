@@ -1,152 +1,70 @@
 import { User } from "@/server/lib/types"
 import "dayjs/locale/es"
-import { Appointment } from "@/server/lib/types/appointment"
-import { Patient } from "@/server/lib/types/patient"
 import { api } from "@/utils/api"
-import { Alert, Button, Group, Loader, LoadingOverlay, Modal, Paper, Select, SimpleGrid, Stack, Title } from "@mantine/core"
-import { DateTimePicker } from "@mantine/dates"
-import { useDisclosure } from "@mantine/hooks"
-import { IconAlertCircle, IconCalendar } from "@tabler/icons-react"
-import { useEffect, useState } from "react"
+import { Divider, Group, LoadingOverlay, Stack } from "@mantine/core"
+import { AppointmentCard } from "./appointmentCard"
+import { CreateAppointment } from "./createAppointment"
 
 export function UserAppointments() {
 	const { data: user, isLoading } = api.user.getUser.useQuery()
+	const { refetch } = api.appointment.getByUser.useQuery({ userId: user!.id }, {enabled: !!user})
 
 	if (isLoading) return <LoadingOverlay visible={true} />
 	if (!user) return <></>
 	return (
-		<>
-			<Group my={"md"} w={"100vw"} position="right">
-				<CreateAppointment user={user} />
-			</Group><AppointmentsList user={user} />
+	<>
+
+		<Group my={"md"} w={"80vw"} mx={'auto'} position="right">
+			<CreateAppointment user={user} refetch={refetch} />
+			</Group>
+		<AppointmentsList user={user} />
 		</>
 	)
 }
 
 
 function AppointmentsList({ user }: { user: User }) {
-	const { data, isLoading, isError, error } = api.appointment.getByUser.useQuery({ userId: user.id })
+	const { data, isLoading, isError, error, refetch } = api.appointment.getByUser.useQuery({ userId: user.id })
 
 	if (isLoading) return <LoadingOverlay visible={true} />
-
 	if (isError) return <>Se ha producido un error!!: {error.message}</>
-
 	if (!data) return <>No data </>
+
+	// --- Get unique dates for UI display ---
+
+	function formatMonthYear(date: Date): string {
+		const month = String(date.getMonth() + 1).padStart(2, '0'); // Los meses son 0-indexados
+		const year = date.getFullYear();
+		return `${month}/${year}`;
+	}
+	// Display based on month and year
+	const uniqueMonthYears = Array.from(new Set(data.map(item => formatMonthYear(item.date))));
+
+	// reorder dates from newest to oldest
+	uniqueMonthYears.sort((a, b) => {
+		const [monthA, yearA] = a.split('/').map(Number);
+		const [monthB, yearB] = b.split('/').map(Number);
+		return new Date(yearB!, monthB! - 1).getTime() - new Date(yearA!, monthA! - 1).getTime();
+	});
+
 
 	return (
 		<>
-			{data.map(appointment => <AppointmentCard username={user.name} data={appointment} key={appointment.id} />)}
+
+			{uniqueMonthYears.map(date => {
+				const [month, year] = date.split('/').map(Number);
+				const appointments = data.filter(app => {
+				const itemMonth = app.date.getMonth() + 1;
+				const itemYear = app.date.getFullYear();
+				return itemMonth === month && itemYear === year;
+			});
+			return (
+			<Stack key={date} maw={'80vw'} mx={'auto'}>
+				<Divider size={"xl"} key={date} label={date} color="blue.4" labelProps={{size: "2rem"}}/>
+				{appointments.map(appointment => <AppointmentCard refetch={refetch} data={appointment} key={appointment.id} />)}
+			</Stack>
+			)
+			})}
 		</>
-	)
-}
-
-export function AppointmentCard({ data, username }: { data: Appointment, username: User["name"] }) {
-
-	const { data: patient } = api.patient.getUnique.useQuery({ id: data.patientId })
-	return (
-		<Paper>
-			<SimpleGrid cols={2}>
-				<Stack>
-					<Title order={6}>
-						Paciente:
-					</Title>
-					{patient ? `${patient.name} ${patient.lastName}` : <Loader />}
-				</Stack>
-				<Stack>
-					<Title order={6}>
-						Atiende:
-					</Title>
-					{username ?? "Medico"}
-				</Stack>
-				<Stack>
-					<Title order={6}>
-						Fecha:
-					</Title>
-					{data.date.toLocaleDateString("es-ES")}
-				</Stack>
-				<Stack>
-					<Title order={6}>
-						Hora:
-					</Title>
-					{data.date.toLocaleTimeString("es-ES", { hour: "numeric", minute: "numeric" })}
-				</Stack>
-			</SimpleGrid>
-		</Paper>
-	)
-}
-
-
-function CreateAppointment({ user }: { user: User }) {
-	const mutation = api.appointment.create.useMutation()
-	const { data, isLoading } = api.patient.getAll.useQuery()
-	const [opened, { open, close }] = useDisclosure()
-	const [date, setDate] = useState<Date | null>()
-	const [error, setError] = useState<string | null>()
-
-	const [patientId, setPatientId] = useState<Patient["id"] | null>()
-	const { refetch } = api.appointment.getByUser.useQuery({ userId: user.id })
-	useEffect(() => {
-		// Automatically close the modal on success
-		if (mutation.isSuccess) {
-			void refetch()
-			void close()
-		}
-	}, [mutation.isSuccess])
-
-	if (isLoading) return <LoadingOverlay visible />
-	if (!data) return <></>
-
-	const patientData = data.map(p => { return { value: p.id, label: `${p.name} ${p.lastName}` } })
-
-	function onNewAppointment() {
-		let err = ""
-		if (!patientId) {
-			err = "Paciente no seleccionado"
-		}
-		if (!date) {
-			err = err + " Fecha no seleccionada"
-		}
-		// If validation is not correct, dont send any data to server
-		if (err) {
-			setError(err)
-			return
-		}
-
-		const payload = {
-			userId: user.id,
-			patientId: patientId!,
-			date: date!
-		}
-
-		mutation.mutate(payload)
-	}
-
-	return (
-		<><Button variant="outline" w={"small"} leftIcon={<IconCalendar />} mr={"xl"} onClick={open}>Añadir una nueva cita</Button>
-			<Modal opened={opened} p={0} m={0} onClose={close} centered size={"55%"} withCloseButton={false} >
-				<Stack h={"70vh"}>
-					<Title align="center" order={3}>
-						Nueva cita
-					</Title>
-					<Select label={"Elige el paciente"}
-						data={patientData}
-						onChange={setPatientId}
-					>
-					</ Select>
-					{/* Undefined values to be compliant with type definition and avoids linter errors */}
-					<DateTimePicker locale={"es"} w={"100%"} label="Escoge fecha y hora para la cita" mx={'auto'} value={date} onChange={e => setDate(e)} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} placeholder={undefined} />
-					<Group my={"xl"} w={"100%"} position={"center"}>
-						<Button onClick={onNewAppointment} loading={mutation.isPending}>Crear cita</Button>
-					</Group>
-					{mutation.isError ?
-						<Alert icon={<IconAlertCircle size={'1rem'} />} title={'¡Error!'} color={'red'}>
-							Ha ocurrido un error al crear la cita: {mutation.error.message}
-						</Alert>
-						: null}
-					{error ? <Alert icon={<IconAlertCircle size="1rem" />} title="Campos requeridos" color="red">
-						{error}
-					</Alert> : null}
-				</Stack>
-			</Modal ></>
 	)
 }

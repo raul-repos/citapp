@@ -3,7 +3,7 @@ import { Title } from "@mantine/core";
 
 export default function Logo() {
 	return (
-		<Title className={pacifico.className} c='red'>
+		<Title className={pacifico.className} py={"0.4rem"} c='red'>
 			Citapp
 		</Title>
 	)
